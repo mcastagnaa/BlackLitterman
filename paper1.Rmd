@@ -1,0 +1,65 @@
+---
+title: "Black-Litterman implementation"
+author: "Matteo Castagna"
+date: "21 July 2019"
+output: pdf_document
+---
+
+While mean-variance optimization (1952) is still a big reference in the academia, it didn't find much traction among practitioners.
+Unrealistic and extreeme solutions (in terms of portfolio weights) and issues trying to join that framework with the reality of the investment desks, analysts' contributions and macro strategists meant it is really not so widely used.
+
+While some of its results still need to be considered, Black-Litterman (1990) suggested a different approach to portfolio optimization which seems better suited for the average asset manager.
+
+The starting points of their proposal are:
+
+* The reference is the portfolio representing markets' equilibrium (as derived via the CAPM)^[The mean-variance optimization lack this natural starting point and this is one of the reason why the resulting weights from the optimization process, once the full set of returns have been supplied, typically fail to make sense.].
+* To this starting point specific views about the market can be added by the investor
+* The portfolio weights resulting from the following optimization reflect those views, returning portfolio weights which are a function of the starting point, the views and the confidence about them.
+
+# The dataset
+
+For this paper a set of `r years`y weekly returns (`r nrow(IndexSet)` observations), covering the period from `r format(min(IndexSet$Date), "%d-%h-%y")` to `r format(max(IndexSet$Date), "%d-%h-%y")`, for the MSCI ACWI regional indices are used.
+
+The capitalization weights are printed alongside:
+
+```{r dataset, message=FALSE, echo = FALSE, warning=FALSE}
+print(
+RegionSplit %>%
+  rename(Weight = TotW) %>%
+  mutate(Weight = paste0(format(round(Weight*100, 2)), "%")) %>%
+  as.data.frame()
+  )
+```
+
+# A short overview of the Markowitz framework
+
+The essence is to find a set of portfolio weights balancing the expected return against the contribution to portfolio risk for each individual asset. When the return from an additional unit of an asset is lower than the contribution to risk, you just stop buying that asset. 
+Unfortunately this approach (whenever the constaints are not too overwhelming) typically returns an unreasonably extreme portfolio.
+
+The easy way to show this is by showing some key portfolio obtained using the mean-variance framework.
+
+This is the starting point given the dataset using the standard representation of the risky portfolios in the context of the risk/reward space:
+
+```{r markowits, echo = FALSE}
+
+tailoredFrontierPlot(longFrontier, frontier = c("upper"), return = "mu", risk = "Cov",
+                     sharpeRatio = F)
+
+```
+
+These are the weights for:
+
+1. Equal weight portfolio (just an example of a feasible portfolio)
+2. Minimum risk portfolio  given returns equal to equal-weight portfolio
+2. Global minimum risk portfolio
+3. Tangency portfolio (maximum Sharpe) unconstrained
+
+with their expected volatility and returns.
+
+```{r portfolios, echo = FALSE}
+ptfl
+
+ptflW
+
+```
+

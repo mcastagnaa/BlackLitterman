@@ -4,6 +4,9 @@ library(janitor)
 library(fPortfolio)
 library(PerformanceAnalytics)
 library(ggplot2)
+library(ggrepel)
+library(rmarkdown)
+library(kableExtra)
 
 rm(list = ls())
 
@@ -48,7 +51,7 @@ setWeights(mvSpec) <- eqWPort$TotW
 
 eqWPortfolio <- feasiblePortfolio(data = timeSeries(IndexSetW),
                                   spec = mvSpec)
-resPtf <- data.frame(Ptfl = "eqW",
+resPtf <- data.frame(Ptfl = "Equal Weights",
                      Mean = as.numeric(getTargetReturn(eqWPortfolio@portfolio)["mean"]) ,
                      Vol = as.numeric(getTargetRisk(eqWPortfolio@portfolio)["Cov"]),
                      t(getWeights(eqWPortfolio)))
@@ -67,7 +70,7 @@ minRskPtfl <- efficientPortfolio(
 )
 
 resPtf <- rbind(resPtf,
-                data.frame(Ptfl = "minRsk",
+                data.frame(Ptfl = "Min Risk - given returns from eq.w.portfolio",
                            Mean = as.numeric(getTargetReturn(minRskPtfl@portfolio)["mean"]) ,
                            Vol = as.numeric(getTargetRisk(minRskPtfl@portfolio)["Cov"]),
                            t(getWeights(minRskPtfl)))
@@ -83,7 +86,7 @@ glbMinRiskPtfl <- minvariancePortfolio(
 print(glbMinRiskPtfl)
 
 resPtf <- rbind(resPtf,
-                data.frame(Ptfl = "glbMinRsk",
+                data.frame(Ptfl = "Global Min Risk",
                            Mean = as.numeric(getTargetReturn(glbMinRiskPtfl@portfolio)["mean"]) ,
                            Vol = as.numeric(getTargetRisk(glbMinRiskPtfl@portfolio)["Cov"]),
                            t(getWeights(glbMinRiskPtfl)))
@@ -100,7 +103,7 @@ tanPtfl <- tangencyPortfolio(
 print(tanPtfl)
 
 resPtf <- rbind(resPtf,
-                data.frame(Ptfl = "tangency",
+                data.frame(Ptfl = "Tangency portfolio",
                            Mean = as.numeric(getTargetReturn(tanPtfl@portfolio)["mean"]) ,
                            Vol = as.numeric(getTargetRisk(tanPtfl@portfolio)["Cov"]),
                            t(getWeights(tanPtfl)))
@@ -108,9 +111,17 @@ resPtf <- rbind(resPtf,
 resPtf$Ptfl <- as.character(resPtf$Ptfl)
 
 ## Results
-ggplot(resPtf, aes(x = Vol, y =  Mean, label = Ptfl)) +
-  geom_label() + 
-  geom_point()
+ptfl <- ggplot(resPtf, aes(x = Vol * sqrt(annFactor), y =  Mean * annFactor)) +
+  geom_point() +
+  geom_text_repel(aes(label=Ptfl)) + 
+  scale_x_continuous(label = scales::percent) + 
+  scale_y_continuous(label = scales::percent) +
+  theme_bw() + 
+  labs(title = "Classical optimization results",
+       x = "annualized volatility",
+       y = "annualized returns") 
+  
+  
 
 resPtf %>%
   select(1, 4:ncol(resPtf)) %>%
@@ -119,12 +130,16 @@ resPtf %>%
   geom_bar(stat = "identity", position = "dodge") +
   theme_bw()
 
-resPtf %>%
+ptflW <- resPtf %>%
   select(1, 4:ncol(resPtf)) %>%
   gather(Region, Weight, -Ptfl) %>%
   ggplot(aes(x = Ptfl, y = Weight, fill = Region)) + 
   geom_bar(stat = "identity", position = "dodge") +
-  theme_bw()
+  theme_bw() + 
+  theme(axis.text.x=element_text(angle=45,hjust=1)) +
+  labs(title = "Portfolio weights",
+       x = "", y = "") +
+  scale_y_continuous(labels = scales::percent)
 
 ### Frontier #######
 setNFrontierPoints(mvSpec) <- 20
@@ -154,4 +169,4 @@ tailoredFrontierPlot(constrFrontier, frontier = c("upper"), return = "mu", risk 
 ## Add group constraints
 ## Add box/group constraints
 
-
+render("paper1.Rmd")
