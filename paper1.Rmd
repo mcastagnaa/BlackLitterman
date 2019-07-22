@@ -1,9 +1,14 @@
 ---
 title: "Black-Litterman implementation"
-author: "Matteo Castagna"
-date: "21 July 2019"
+author: "Matteo Castagna, Alessandro Chiodini, Fabio Peterlin"
+date: '`r format(Sys.time(), "%d %B, %Y")`'
+header-includes:
+   - \usepackage{amsmath}
 output: pdf_document
+
 ---
+
+**[VERY DRAFT]**
 
 While mean-variance optimization (1952) is still a big reference in the academia, it didn't find much traction among practitioners.
 Unrealistic and extreeme solutions (in terms of portfolio weights) and issues trying to join that framework with the reality of the investment desks, analysts' contributions and macro strategists meant it is really not so widely used.
@@ -56,10 +61,70 @@ These are the weights for:
 
 with their expected volatility and returns.
 
-```{r portfolios, echo = FALSE}
+```{r ptfl, echo = FALSE}
 ptfl
+
+```
+
+```{r ptflW, echo = FALSE}
 
 ptflW
 
 ```
+
+Without adding constraints the optimal portfolio from the Markowitz optimization is typically rather extreeme. 
+
+
+# The Black-Litterman model
+
+### Equilibrum returns
+The starting point for the BL model is the equilibrium weights represented by the capitalization weight of the relevant market. In case of a benchmark based portfolio, this translates into a neutral portfolio where the weights are the same weights as the benchmark. What is the reason to deviate from the benchmark? It is when the investor views are different from those represented by the equilibrium (ie, by the benchmark weights).
+
+The immediate next step is to derive the exptected returns from the equilibrium weights given the covariance matrix^[Estimating the covariance matrix is one of the crucial aspects of the model.].
+Knowing the weights, the covariance matrix the equilibrium returns are the result of the reverse optimization process represented by the following equation:
+
+\begin{equation}
+\mu^* = \lambda \Sigma w_{mkt}
+\end{equation}
+
+where $\lambda$ is a parameter representing risk-aversion (higher $\lambda$ means more willingness to take risk, lower $\lambda$ a higher risk-aversion), $`\Sigma$ is the covariance matrix^[Hopefully something better than the sample covariance matrix!] and $w_{mkt}$ are the market weights.
+
+Using our dataset and implementing an estimate of the covariance matrix mildly sophisticated^[*Minimum volume ellipsoid* form the mass package.] the expected returns of the different regions is represented in chart xxxxx.
+
+
+```{r eqRets, message=FALSE, echo = FALSE, warning=FALSE}
+
+compRets
+
+```
+
+
+### Investors views
+The second essential component of the BL model is the addition of the investor view(s). They can be represented in absolute terms (eg, EM will return 12% over the following period), in relative terms (eg, EM will return 2% over NorthAmerica) and as a combo of different components (eg, Japan and Asia Pacific ex Japan will return -2% vs. Europe Ex-UK).
+
+In extreme synthesis, the BL model portfolio will be the weighted average of the market equilibrium portfolio and portfolios representing the views.
+
+In case of constraints the resulting portfolio will be delivered by the optimization process on the ex-post expected returns (equilibrium + views).
+
+What is crucial is the fact the investor needs to be specific about the results of her views; we can't just say "component 1 will outperform component 2"; we need to be clear about a) the economic result and b) how confident we are with that view.
+
+# A working example
+
+### A view
+EM vs. Jap case
+
+### Results shifting the confidenx and or the expected returns
+
+X/Y chart with EM and Jap change of weights (on the x and y coordinates) vs. equilibrim (size of the point? Tweaking the $\lambda$ and) and the color scale illustrating the expected (annualized) return of the view [good luck explaining that].
+
+# A standalone app
+
+[screenshots of the Shiny package:
+
+* selection of view elements
+* confidence multiplier slide
+* resulting posterior returns
+* resulting weights (change vs. equilibrium)
+
+]
 

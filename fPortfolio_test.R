@@ -121,8 +121,6 @@ ptfl <- ggplot(resPtf, aes(x = Vol * sqrt(annFactor), y =  Mean * annFactor)) +
        x = "annualized volatility",
        y = "annualized returns") 
   
-  
-
 resPtf %>%
   select(1, 4:ncol(resPtf)) %>%
   gather(Region, Weight, -Ptfl) %>%
