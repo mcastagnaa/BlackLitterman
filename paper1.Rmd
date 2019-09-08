@@ -11,14 +11,14 @@ output: pdf_document
 **[VERY DRAFT]**
 
 While mean-variance optimization (1952) is still a big reference in the academia, it didn't find much traction among practitioners.
-Unrealistic and extreeme solutions (in terms of portfolio weights) and issues trying to join that framework with the reality of the investment desks, analysts' contributions and macro strategists meant it is really not so widely used.
+Unrealistic and extreme solutions (in terms of portfolio weights) and issues trying to join that framework with the reality of the investment desks, analysts' contributions and macro strategists meant it is really not so widely used.
 
-While some of its results still need to be considered, Black-Litterman (1990) suggested a different approach to portfolio optimization which seems better suited for the average asset manager.
+While some of its results still need to be considered, Black-Litterman (1990) suggested a different approach to portfolio optimization which seems better suited for the real-life asset manager.
 
 The starting points of their proposal are:
 
 * The reference is the portfolio representing markets' equilibrium (as derived via the CAPM)^[The mean-variance optimization lack this natural starting point and this is one of the reason why the resulting weights from the optimization process, once the full set of returns have been supplied, typically fail to make sense.].
-* To this starting point specific views about the market can be added by the investor
+* To this starting point specific views about the market can be added by the investor.
 * The portfolio weights resulting from the following optimization reflect those views, returning portfolio weights which are a function of the starting point, the views and the confidence about them.
 
 # The dataset
@@ -83,9 +83,8 @@ The starting point for the BL model is the equilibrium weights represented by th
 The immediate next step is to derive the exptected returns from the equilibrium weights given the covariance matrix^[Estimating the covariance matrix is one of the crucial aspects of the model.].
 Knowing the weights, the covariance matrix the equilibrium returns are the result of the reverse optimization process represented by the following equation:
 
-\begin{equation}
-\mu^* = \lambda \Sigma w_{mkt}
-\end{equation}
+
+$$\mu^* = \lambda \Sigma w_{mkt}$$
 
 where $\lambda$ is a parameter representing risk-aversion (higher $\lambda$ means more willingness to take risk, lower $\lambda$ a higher risk-aversion), $`\Sigma$ is the covariance matrix^[Hopefully something better than the sample covariance matrix!] and $w_{mkt}$ are the market weights.
 
@@ -110,12 +109,60 @@ What is crucial is the fact the investor needs to be specific about the results 
 
 # A working example
 
-### A view
-EM vs. Jap case
+### User case - single view
+Let's assume the strategists have a view where EM is expected to underperform Japan by `r paste0(round(pick1RetAnn * 100, 2), "%")` on an annual basis. Once this is translated in the same time unit of the dataset (`r frequency`). The view is identified by the following statement:
 
-### Results shifting the confidenx and or the expected returns
+```{r view, message=FALSE, echo = FALSE, warning=FALSE}
 
-X/Y chart with EM and Jap change of weights (on the x and y coordinates) vs. equilibrim (size of the point? Tweaking the $\lambda$ and) and the color scale illustrating the expected (annualized) return of the view [good luck explaining that].
+myView
+
+```
+
+Attached to the view elements and the expected outcome, the model works out (based on the estimate of the covariance matrix - based on the historical dataset) the confidence associated to that view defined as the reciprocal of the variance of the returns associated to the view itself.
+
+$$confidence = \frac{1}{pickMatrix * covarMatrix * pickMatrix'}$$
+
+
+where $pickMatrix$ is the matrix where the elements of the view are picked from the asset list.
+
+Based on the view the model delivers the posterior expected returns
+
+```{r marketPost, message=FALSE, echo = FALSE, warning=FALSE}
+
+marketPosterior
+
+```
+
+Given the new market expectations we can then apply the optimizer and get the new weights:
+
+
+```{r newWeights, message=FALSE, echo = FALSE, warning=FALSE}
+
+BLoptData
+
+```
+
+In graphical terms:
+
+```{r GrWeights, message=FALSE, echo = FALSE, warning=FALSE}
+
+chrtBLoptData
+
+```
+
+### Results shifting the confidence and or the expected returns
+
+One of the key aspect of the model is the fact it can be explained as a linear combination of different portfolios. 
+The linearity of the underlying model can be easily illustrated by the result of the trade-off between risk-aversion (the $\lambda$) and the expected returns of the view.
+
+The following chart provides for different values of risk-aversion the change in weights between Japan and EM due to different expected returns of the view (as the size of the point)
+
+```{r toChart, message=FALSE, echo = FALSE, warning=FALSE}
+
+chart_to
+
+```
+
 
 # A standalone app
 

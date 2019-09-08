@@ -1,33 +1,3 @@
-library(dplyr)
-library(tidyr)
-library(janitor)
-library(fPortfolio)
-library(PerformanceAnalytics)
-library(ggplot2)
-library(ggrepel)
-
-rm(list = ls())
-
-load("IndexSet.Rda")
-
-annFactor <- switch(frequency,
-                    "WEEKLY"= 52,
-                    "DAILY" = 252,
-                    "MONTHLY" = 12)
-
-idxMap <- RegionSplit %>%
-  mutate(Idx = gsub(" Index$", "", Ticker)) %>%
-  select(-Ticker)
-
-IndexSetW <- IndexSet %>%
-  left_join(idxMap, by = "Idx") %>%
-  select(-c(Idx, TotW))%>%
-  spread(Region, Ret) %>% 
-  `row.names<-`(.[,"Date"]) %>%
-  select(-Date)
-
-assetsNames <- names(IndexSetW)
-print(assetsNames)
 
 ### BASICS ##########################################################
 varCov <- cov(IndexSetW)
@@ -72,7 +42,7 @@ resPtf <- rbind(resPtf,
                            Mean = as.numeric(getTargetReturn(minRskPtfl@portfolio)["mean"]) ,
                            Vol = as.numeric(getTargetRisk(minRskPtfl@portfolio)["Cov"]),
                            t(getWeights(minRskPtfl)))
-                )
+)
 
 ## minimum variance portfolio
 glbMinRiskSpec <- portfolioSpec()
@@ -118,7 +88,7 @@ ptfl <- ggplot(resPtf, aes(x = Vol * sqrt(annFactor), y =  Mean * annFactor)) +
   labs(title = "Classical optimization results",
        x = "annualized volatility",
        y = "annualized returns") 
-  
+
 resPtf %>%
   select(1, 4:ncol(resPtf)) %>%
   gather(Region, Weight, -Ptfl) %>%
@@ -164,3 +134,4 @@ tailoredFrontierPlot(constrFrontier, frontier = c("upper"), return = "mu", risk 
 
 ## Add group constraints
 ## Add box/group constraints
+

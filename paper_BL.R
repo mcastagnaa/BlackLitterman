@@ -1,34 +1,3 @@
-library(BLCOP)
-library(dplyr)
-library(tidyr)
-library(janitor)
-library(fPortfolio)
-library(PerformanceAnalytics)
-library(ggplot2)
-
-rm(list = ls())
-
-load("IndexSet.Rda")
-
-annFactor <- switch(frequency,
-                    "WEEKLY"= 52,
-                    "DAILY" = 252,
-                    "MONTHLY" = 12)
-
-idxMap <- RegionSplit %>%
-  mutate(Idx = gsub(" Index$", "", Ticker)) %>%
-  select(-Ticker)
-
-IndexSetW <- IndexSet %>%
-  left_join(idxMap, by = "Idx") %>%
-  select(-c(Idx, TotW))%>%
-  spread(Region, Ret) %>% 
-  `row.names<-`(.[,"Date"]) %>%
-  select(-Date)
-
-assetsNames <- names(IndexSetW)
-print(assetsNames)
-
 ####
 hMu <- apply(IndexSetW, 2, mean)
 
@@ -78,28 +47,28 @@ confd <- 1/as.numeric(pick1 %*% priorVarcov %*% t(pick1))
 
 myView <- BLViews(pick1, q = pick1RetAnn/sqrt(annFactor), confidences = confd, RegionSplit$Region)
 
-### View 2 #########################################
-pick2 <- newPMatrix(RegionSplit$Region, 1)
-pick2[1, 5] <- 1
-pick2RetAnn <- -0.1
-writeLines(paste("View1 SD =", sqrt(pick2 %*% priorVarcov %*% t(pick2)) * sqrt(annFactor), 
-                 "View2 Ret Ann = ", pick2RetAnn))
-
-confd <- 1/as.numeric(pick2 %*% priorVarcov %*% t(pick2))
-myView <- addBLViews(pick2,  q = pick2RetAnn/sqrt(annFactor), confidences = confd, myView )
-
-### View 3 #########################################
-pick3 <- newPMatrix(RegionSplit$Region, 1)
-pick3[1, 5] <- 1
-pick3[1, 6] <- -1
-pick3RetAnn <- -0.1
-writeLines(paste("View3 SD =", sqrt(pick3 %*% priorVarcov %*% t(pick3)) * sqrt(annFactor), 
-                 "View3 Ret Ann = ", pick3RetAnn))
-
-writeLines(paste("ViewSD =", sqrt(pick3 %*% priorVarcov %*% t(pick3)) * sqrt(annFactor)))
-
-confd <- 1/as.numeric(pick3 %*% priorVarcov %*% t(pick3))
-myView <- addBLViews(pick3,  q = 0/sqrt(annFactor), confidences = confd, myView )
+# ### View 2 #########################################
+# pick2 <- newPMatrix(RegionSplit$Region, 1)
+# pick2[1, 5] <- 1
+# pick2RetAnn <- -0.1
+# writeLines(paste("View1 SD =", sqrt(pick2 %*% priorVarcov %*% t(pick2)) * sqrt(annFactor), 
+#                  "View2 Ret Ann = ", pick2RetAnn))
+# 
+# confd <- 1/as.numeric(pick2 %*% priorVarcov %*% t(pick2))
+# myView <- addBLViews(pick2,  q = pick2RetAnn/sqrt(annFactor), confidences = confd, myView )
+# 
+# ### View 3 #########################################
+# pick3 <- newPMatrix(RegionSplit$Region, 1)
+# pick3[1, 5] <- 1
+# pick3[1, 6] <- -1
+# pick3RetAnn <- -0.1
+# writeLines(paste("View3 SD =", sqrt(pick3 %*% priorVarcov %*% t(pick3)) * sqrt(annFactor), 
+#                  "View3 Ret Ann = ", pick3RetAnn))
+# 
+# writeLines(paste("ViewSD =", sqrt(pick3 %*% priorVarcov %*% t(pick3)) * sqrt(annFactor)))
+# 
+# confd <- 1/as.numeric(pick3 %*% priorVarcov %*% t(pick3))
+# myView <- addBLViews(pick3,  q = 0/sqrt(annFactor), confidences = confd, myView )
 
 print(myView)
 

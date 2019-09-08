@@ -1,34 +1,5 @@
-library(BLCOP)
-library(dplyr)
-library(tidyr)
-library(janitor)
-library(fPortfolio)
-library(ggplot2)
-
-#rm(list = ls())
-
-load("IndexSet.Rda")
 source("BLfunct.R")
 
-annFactor <- switch(frequency,
-                    "WEEKLY"= 52,
-                    "DAILY" = 252,
-                    "MONTHLY" = 12)
-
-idxMap <- RegionSplit %>%
-  mutate(Idx = gsub(" Index$", "", Ticker)) %>%
-  select(-Ticker)
-
-IndexSetW <- IndexSet %>%
-  left_join(idxMap, by = "Idx") %>%
-  select(-c(Idx, TotW))%>%
-  spread(Region, Ret) %>% 
-  `row.names<-`(.[,"Date"]) %>%
-  select(-Date)
-
-assetsNames <- names(IndexSetW)
-
-hMu <- apply(IndexSetW, 2, mean)
 priorVarcov <- cov.mve(IndexSetW)$cov
 
 ### DEFView
@@ -74,7 +45,7 @@ for(lambdM in seq(from = 0.2, to = 1.6, by = 0.2)) {
   }
 }
 
-chart <- results %>%
+chart_to <- results %>%
   #select(lambdM, viewRetAnn, Japan, EM, Ptfl) %>%
   #gather(Region, Weight, -c(lambdM, viewRetAnn, Ptfl)) %>%
   ggplot(aes(x = Japan, y = EM, size = viewRetAnn, shape = Ptfl, color = Ptfl)) +
@@ -85,4 +56,4 @@ chart <- results %>%
   scale_y_continuous(labels = scales::percent) +
   scale_size_continuous(range = c(0.1, 3))
 
-print(chart)
+print(chart_to)
