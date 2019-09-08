@@ -101,5 +101,3 @@ BLoptData %>%
   geom_bar(stat = "identity", position = "dodge") +
   theme_bw() +
   scale_y_continuous(labels= scales::percent)
-
-
