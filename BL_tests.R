@@ -39,6 +39,9 @@ namesCorr <- cor(IndexSetW)
 
 
 lambda <-  as.numeric((RegionSplit$TotW %*% hMu)/(t(RegionSplit$TotW) %*% priorVarcov %*% RegionSplit$TotW))
+lambda <- lambda * 0.5
+
+tau = 1/nrow(IndexSetW)
 
 ### Eq.Rets ########################################
 eqMu <- (lambda * priorVarcov) %*% RegionSplit$TotW
@@ -62,18 +65,43 @@ as.data.frame(hMu) %>%
 #testW <- inv(lambda * priorVarcov) %*% eqMu
 #print(round(as.numeric(RegionSplit$TotW), 8) == round(as.numeric(testW), 8))
 
-### Views #########################################
-pick <- newPMatrix(RegionSplit$Region, 1)
-pick[1, 2] <- -1
-pick[1, 4] <- 1
+### View 1 #########################################
+pick1 <- newPMatrix(RegionSplit$Region, 1)
+pick1[1, 2] <- -1
+pick1[1, 4] <- 1
+pick1RetAnn <- 0.05
 
-viewSD <- sqrt(pick %*% priorVarcov %*% t(pick)) * sqrt(annFactor)
+writeLines(paste("View1 SD =", sqrt(pick1 %*% priorVarcov %*% t(pick1)) * sqrt(annFactor), 
+                 "View1 Ret Ann = ", pick1RetAnn))
 
-confd <- 1/as.numeric(pick %*% priorVarcov %*% t(pick))
+confd <- 1/as.numeric(pick1 %*% priorVarcov %*% t(pick1))
 
-tau = 1/nrow(IndexSetW)
+myView <- BLViews(pick1, q = pick1RetAnn/sqrt(annFactor), confidences = confd, RegionSplit$Region)
 
-myView <- BLViews(pick, q = 0.05/sqrt(annFactor), confidences = confd, RegionSplit$Region)
+### View 2 #########################################
+pick2 <- newPMatrix(RegionSplit$Region, 1)
+pick2[1, 5] <- 1
+pick2RetAnn <- -0.1
+writeLines(paste("View1 SD =", sqrt(pick2 %*% priorVarcov %*% t(pick2)) * sqrt(annFactor), 
+                 "View2 Ret Ann = ", pick2RetAnn))
+
+confd <- 1/as.numeric(pick2 %*% priorVarcov %*% t(pick2))
+myView <- addBLViews(pick2,  q = pick2RetAnn/sqrt(annFactor), confidences = confd, myView )
+
+### View 3 #########################################
+pick3 <- newPMatrix(RegionSplit$Region, 1)
+pick3[1, 5] <- 1
+pick3[1, 6] <- -1
+pick3RetAnn <- -0.1
+writeLines(paste("View3 SD =", sqrt(pick3 %*% priorVarcov %*% t(pick3)) * sqrt(annFactor), 
+                 "View3 Ret Ann = ", pick3RetAnn))
+
+writeLines(paste("ViewSD =", sqrt(pick3 %*% priorVarcov %*% t(pick3)) * sqrt(annFactor)))
+
+confd <- 1/as.numeric(pick3 %*% priorVarcov %*% t(pick3))
+myView <- addBLViews(pick3,  q = 0/sqrt(annFactor), confidences = confd, myView )
+
+print(myView)
 
 ### New returns from the View (Bayesian returns)
 marketPosterior <- posteriorEst(views = myView, sigma = priorVarcov, mu = as.vector(eqMu), tau = tau)
@@ -94,10 +122,12 @@ BLoptData <- data.frame(Ptfl = "prior",
 
 print(BLoptData)
 
-BLoptData %>%
+chrtBLoptData <- BLoptData %>%
   select(1, 4:ncol(BLoptData)) %>%
   gather(Region, Weight, -Ptfl) %>%
   ggplot(aes(x = Region, y = Weight, fill = Ptfl)) + 
   geom_bar(stat = "identity", position = "dodge") +
   theme_bw() +
   scale_y_continuous(labels= scales::percent)
+
+print(chrtBLoptData)
