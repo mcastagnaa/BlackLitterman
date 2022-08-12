@@ -2,7 +2,7 @@
 hMu <- apply(IndexSetW, 2, mean)
 
 ### Alternative Cov matrix estimate
-priorVarcov <- cov.mve(IndexSetW)$cov
+priorVarcov <- MASS::cov.mve(IndexSetW)$cov
 namesAnnSd <- sqrt(diag(priorVarcov)) * sqrt(annFactor)
 namesCorr <- cor(IndexSetW)
 

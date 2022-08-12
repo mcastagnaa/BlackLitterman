@@ -1,6 +1,6 @@
 source("BLfunct.R")
 
-priorVarcov <- cov.mve(IndexSetW)$cov
+priorVarcov <- MASS::cov.mve(IndexSetW)$cov
 
 ### DEFView
 pick <- newPMatrix(RegionSplit$Region, 1)
